@@ -1,0 +1,149 @@
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+]
+testpaths = [
+    ".",
+    "./test",
+]
+# ignore any of these paths
+norecursedirs = [
+
+]
+
+[tool.poetry]
+name = "shuntclf"
+package-mode = false
+version = "1.0.0"
+description = "Machine learning algorithms used for the prediction of chronic shunt-dependent hydrocephalus after spontaneous subarachnoid hemorrhage"
+authors = [
+    "Markus Steindl <ma.steindl@gmail.com>",
+]
+
+[tool.poetry.dependencies]
+python = "~3.11"
+pandas = "^2.1.1"
+matplotlib = "^3.8.0"
+tensorboard = "^2.14.1"
+seaborn = "^0.13.0"
+numpy = "^1.25.2"
+imbalanced-learn = "^0.12.0"
+xgboost = "^2.0.3"
+scikit-learn = "^1.4.1.post1"
+gradio = "^5.35.0"
+openpyxl = "^3.1.5"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+pytest-xdist = "^3.7.0"
+poethepoet = "^0.36.0"
+ruff = "^0.12.1"
+black = "^25.1.0"
+ipykernel = "^6.29.5"
+#liccheck = "^0.9.1"
+#pip-licenses = "^4.3.2"
+isort = "^6.0.1"
+
+[tool.liccheck]
+# see also: https://pypi.org/project/liccheck/
+# Authorized and unauthorized licenses in LOWER CASE
+authorized_licenses = [
+    "bsd",
+    "new bsd",
+    "bsd 3-clause",
+    "bsd license",
+    "freebsd",
+    "3-clause bsd",
+    "isc license",
+    "isc license (iscl)",
+    "apache",
+    "apache 2.0",
+    "apache software",
+    "apache license 2.0",
+    "apache license, version 2.0",
+    "apache software license",
+    "gnu lgpl",
+    "historical permission notice and disclaimer (hpnd)",
+    "lgpl with exceptions or zpl",
+    "mozilla public license 2.0 (mpl 2.0)",
+    "mit",
+    "mit license",
+    "new bsd license",
+    "python software foundation license",
+    "python software foundation",
+    "simplified bsd",
+    "the unlicense (unlicense)",
+]
+unauthorized_licenses = [
+    "gpl v3",
+    "gnu general public license v2 or later (gplv2+)",
+]
+level = "standard"  # alternatives: "cautious", "paranoid"
+requirement_txt_file = "./requirements.txt"
+reporting_txt_file = "./liccheck_reporting.txt" # by default is None
+
+[tool.liccheck.authorized_packages]
+# Python software license (see http://zesty.ca/python/uuid.README.txt)
+uuid = "1.30"
+
+[tool.poe.tasks]
+format = "black ."
+sort_imports = "isort ."
+lint = "ruff check . --ignore F841"
+precommit = ["format", "sort_imports", "lint"]
+test = "pytest -ra --doctest-modules --junitxml=python-junit.xml --cov --cov-report=html --cov-report term"
+
+# license handling
+_convert_to_req_txt = { shell = "poetry export --without-hashes --format=requirements.txt > requirements.txt" }
+# check authorization of the licenses of dependencies as defined in [tool.liccheck] section
+_check_licenses = "liccheck -s liccheck.ini -r requirements.txt"
+_export_licenses = """pip-licenses --from=mixed --with-system --order=license --format=json --with-license-file
+    --with-notice-file --output-file=LICENSES.json"""
+_license_json_postprocess.script = """
+    utils.license_utils:postprocess_licenses_json(
+        file_in_path="LICENSES.json",
+        file_out_path="LICENSES.json",
+    )
+"""
+
+check_licenses = [
+    "_convert_to_req_txt",
+    "_check_licenses",
+]
+
+export_licenses = [
+    "_export_licenses",
+    "_license_json_postprocess"
+]
+
+[tool.ruff]
+line-length = 120
+exclude = [
+]
+
+[tool.isort]
+profile = "black"
+line_length = 120
+skip_glob  = [
+]
+
+[tool.black]
+line-length = 120
+force-exclude = """
+(
+    some_path
+  | some_other_path
+)
+"""
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "pass",
+]
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"
